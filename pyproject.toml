@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smartres"
+version = "0.1.0"
+description = "SmartRes: Dynamic Resolution Routing for Efficient Egocentric Grounding"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+
+# Pinned loosely on purpose: SmartRes patches Qwen2.5-VL at runtime rather than
+# vendoring a fork, so it follows whatever transformers the host environment has,
+# as long as Qwen2_5_VLForConditionalGeneration exists.
+dependencies = [
+    "torch>=2.1",
+    "transformers>=4.49",
+    "accelerate>=0.34",
+    "peft>=0.12",
+    "pillow>=10.0",
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+# Only needed to regenerate the routing labels from raw annotations.
+data = ["tqdm>=4.66"]
+
+[tool.setuptools.packages.find]
+include = ["smartres*", "comparisons*"]

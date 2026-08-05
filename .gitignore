@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+outputs/
+saves/
+*.log
+scripts/*.pbs
+
+# Paper sources dropped into figs/; the release ships rendered PNGs only.
+figs/*.tex
+figs/*.pdf
+
+# Local benchmark output
+bench_per_scale.json

@@ -126,8 +126,6 @@ frame relative to that resized image.
 
 ## Training
 
-**Train scripts:**
-
 ```bash
 bash scripts/train.sh                       # SmartRes-Lite
 bash scripts/train.sh --hr-budget 1.00      # SmartRes-Pro
@@ -150,8 +148,6 @@ lambda_hinge: 5.0    # weight of the margin regulariser
 Use the same `encode_snap` for training and evaluation.
 
 ## Evaluation
-
-**Eval scripts:**
 
 ```bash
 bash scripts/eval.sh context     # also: uncommon
@@ -185,8 +181,6 @@ relative box area `S` into small (`S<0.005`), medium (`0.005≤S<0.05`) and larg
 (`S≥0.05`), reported as P_s, P_m and P_l.
 
 ## Comparisons
-
-**Eval scripts:**
 
 ```bash
 python comparisons/downscale.py --input data/egointention_context_test.json \

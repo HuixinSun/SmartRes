@@ -44,36 +44,6 @@
       "system_tag": "system"
     }
   },
-  "mllm_paco_ego4d_v1_test": {
-    "file_name": "mllm_paco_ego4d_v1_test.json",
-    "formatting": "sharegpt",
-    "columns": {
-      "messages": "messages",
-      "images": "images"
-    },
-    "tags": {
-      "role_tag": "role",
-      "content_tag": "content",
-      "user_tag": "user",
-      "assistant_tag": "assistant",
-      "system_tag": "system"
-    }
-  },
-  "mllm_paco_ego4d_v1_train": {
-    "file_name": "mllm_paco_ego4d_v1_train.json",
-    "formatting": "sharegpt",
-    "columns": {
-      "messages": "messages",
-      "images": "images"
-    },
-    "tags": {
-      "role_tag": "role",
-      "content_tag": "content",
-      "user_tag": "user",
-      "assistant_tag": "assistant",
-      "system_tag": "system"
-    }
-  },
   "mllm_rec_egoint": {
     "file_name": "mllm_rec_egoint.json",
     "formatting": "sharegpt",

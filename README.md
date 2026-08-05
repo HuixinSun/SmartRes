@@ -36,9 +36,9 @@ regions.
 
 - [x] **Environment**: [LLaMA-Factory fork](https://github.com/HuixinSun/LLaMA-Factory-SmartRes) with the SmartRes integration
 - [x] **Training**: router trained jointly with the backbone
-- [x] **Inference**: EgoIntention and Ego4D splits
+- [x] **Inference**: EgoIntention context and uncommon splits
 - [x] **Checkpoint**: SmartRes-Lite
-- [x] **Analysis**: per-scale accuracy and latency
+- [x] **Analysis**: per-scale accuracy
 - [x] **Comparisons**: down-scaling, FastV
 - [x] **Data**: annotations at 100% and 10% → 50%, and a script for other budgets
 
@@ -102,8 +102,8 @@ Use the same `tau` the adapter was trained with.
 ## Data
 
 **Frames.** EgoIntention uses the Ego4D split of
-[PACO](https://github.com/facebookresearch/paco); Ego4D grounding frames are extracted from
-[Ego4D](https://ego4d-data.org/). Point the `images` field of the JSONs at your copy.
+[PACO](https://github.com/facebookresearch/paco). Point the `images` field of the JSONs at
+your copy.
 
 **Labels.** Boxes are stored in the coordinate frame of the resolution they were rendered at,
 so the frame is part of the setting. `10to50` means the image is stored at 50% of the original
@@ -111,7 +111,7 @@ token budget while the boxes live in the 10% coordinate frame.
 
 | Setting | Files |
 |:--|:--|
-| 100% | `mllm_rec_egoint.json`, `egointention_context_test.json`, `mllm_paco_ego4d_v1_{train,test}.json` |
+| 100% | `mllm_rec_egoint.json`, `egointention_{context,uncommon}_test.json` |
 | 10% → 50% (Lite) | `mllm_rec_egoint_10to50.json`, `egointention_{context,uncommon}_test_10to50.json` |
 
 **Tools.** Build a label set at another budget with:
@@ -155,7 +155,7 @@ Use the same `encode_snap` for training and evaluation.
 **Eval scripts:**
 
 ```bash
-bash scripts/eval.sh context     # also: uncommon, ego4d
+bash scripts/eval.sh context     # also: uncommon
 ```
 
 **Configs.** Set in `configs/qwen2_5vl_3b_lora_predict_egoint_lite.yaml`; use the same values
@@ -173,7 +173,7 @@ per_device_eval_batch_size: 1   # must stay 1
 
 ## Analysis
 
-**Accuracy.** Scores the boxes written by `scripts/eval.sh`.
+Scores the boxes written by `scripts/eval.sh`.
 
 ```bash
 python tools/score_per_scale.py \
@@ -184,17 +184,6 @@ python tools/score_per_scale.py \
 Reports P@0.3, P@0.5 and mIoU, overall and per object scale. Objects are grouped by
 relative box area `S` into small (`S<0.005`), medium (`0.005≤S<0.05`) and large
 (`S≥0.05`), reported as P_s, P_m and P_l.
-
-**Efficiency.** Times the vision encoder on the same data.
-
-```bash
-python tools/benchmark_per_scale.py --adapter checkpoints/smartres-lite \
-                                    --dataset data/egointention_context_test_10to50.json
-```
-
-Reports latency and token ratio per object scale, measured with synchronized
-`torch.cuda.Event` timing. The baseline is the same model with `tau` low enough to route
-every patch.
 
 ## Comparisons
 

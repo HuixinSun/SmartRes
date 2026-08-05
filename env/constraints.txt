@@ -5,5 +5,4 @@ tokenizers==0.21.1
 peft==0.15.2
 accelerate==1.7.0
 numpy==2.2.6
-trl==0.9.6
 pydantic==2.10.6

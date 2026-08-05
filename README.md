@@ -52,7 +52,6 @@ conda create -n smartres python=3.10 -y && conda activate smartres
 
 pip install torch==2.9.1 --index-url https://download.pytorch.org/whl/cu128
 pip install -r env/requirements.txt
-pip install trl==0.9.6 --no-deps      # declares numpy<2; unused on the SmartRes path
 pip install -e .
 ```
 
@@ -62,7 +61,7 @@ submodule:
 
 ```bash
 git submodule update --init          # only if you cloned without --recursive
-pip install -e third_party/LLaMA-Factory --no-deps
+pip install -e third_party/LLaMA-Factory -c env/constraints.txt
 ```
 
 `bash env/setup.sh smartres` runs both steps in one go.

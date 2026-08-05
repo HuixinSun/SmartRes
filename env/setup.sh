@@ -11,11 +11,10 @@ eval "$(conda shell.bash hook)"; conda activate "$ENV_NAME"
 
 pip install torch==2.9.1 --index-url https://download.pytorch.org/whl/cu128
 pip install -r env/requirements.txt
-pip install trl==0.9.6 --no-deps
 pip install -e .
 
 git submodule update --init
-pip install -e third_party/LLaMA-Factory --no-deps
+pip install -e third_party/LLaMA-Factory -c env/constraints.txt
 
 python -c "import smartres, llamafactory; print('smartres', smartres.__version__)"
 echo "done -- conda activate $ENV_NAME"

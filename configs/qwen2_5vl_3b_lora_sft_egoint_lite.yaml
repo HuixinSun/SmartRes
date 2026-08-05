@@ -49,6 +49,10 @@ lambda_route: 1.0
 lambda_hinge: 5.0
 ddp_find_unused_parameters: true
 use_reentrant_gc: false
+# Required, not optional: gradient_checkpointing: true makes HF Trainer re-enable
+# checkpointing with kwargs=None, which silently reverts to reentrant and breaks DDP.
+gradient_checkpointing_kwargs:
+  use_reentrant: false
 overwrite_cache: false
 plot_loss: true
 overwrite_output_dir: true

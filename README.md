@@ -212,8 +212,6 @@ SmartRes' **(d)** routing mask and **(e)** prediction, with IoU on each.
 
 ## Acknowledgements
 
-We thank the authors of the projects this work builds on for releasing their code and data.
-
 Built on [Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL),
 [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) and
 [FastV](https://github.com/pkunlp-icler/FastV). Evaluation data comes from

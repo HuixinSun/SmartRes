@@ -45,8 +45,8 @@ save_steps: 500
 logging_steps: 10
 
 ### Routing objective
-lambda_route: 1.0
-lambda_hinge: 5.0
+lambda_route: 0.01
+lambda_hinge: 0.05
 ddp_find_unused_parameters: true
 use_reentrant_gc: false
 # Required, not optional: gradient_checkpointing: true makes HF Trainer re-enable

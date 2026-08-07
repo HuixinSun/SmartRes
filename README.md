@@ -141,8 +141,8 @@ router_layer: 30     # vision block the router reads
 encode_snap: window  # encode-set granularity: window | unit
 lr_budget: 0.10      # r_LR, low-resolution token budget
 hr_budget: 0.50      # r_HR, high-resolution token budget
-lambda_route: 1.0    # weight of the routing BCE term
-lambda_hinge: 5.0    # weight of the margin regulariser
+lambda_route: 0.01   # weight of the routing BCE term
+lambda_hinge: 0.05   # weight of the margin regulariser
 ```
 
 Use the same `encode_snap` for training and evaluation.

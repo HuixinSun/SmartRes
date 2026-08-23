@@ -227,20 +227,6 @@ python tools/score_token_ratio.py \
   low-res patches routed to high res             xx.xx%
 ```
 
-| Flag | |
-|:--|:--|
-| `--log` | any evaluation log; a `[rank1]` prefix on the line is fine |
-| `--records` | a file of already-extracted records, instead of `--log` |
-| `--extract` | where to write the records pulled out of `--log` |
-| `--full-dataset` | the 100% dataset for the same split; sets the denominator |
-| `--high-res-dataset` | the split that was evaluated; enables the coverage check |
-
-**Why the denominator is a sum.** Under DDP the records arrive in an arbitrary order, so the
-tool compares totals and never pairs a record to a dataset row. `--high-res-dataset` is what
-makes that safe: it sorts the recorded `hr_total` values against the patch counts of the
-images in that split and refuses to score if they differ. Without it, a log from another run
-still produces a plausible-looking number.
-
 ## Comparisons
 
 ```bash

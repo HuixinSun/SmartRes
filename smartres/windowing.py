@@ -78,15 +78,24 @@ def run_blocks(
     start: int, end: int,
 ) -> torch.Tensor:
     """Run vision blocks ``[start, end)``, choosing the right attention extent per block."""
+    # Honour the tower's own checkpointing flag: without this the config's
+    # gradient_checkpointing reaches the language model but not these 32 blocks.
+    checkpoint = getattr(vision_tower, "gradient_checkpointing", False) and vision_tower.training
     for layer in range(start, min(end, len(vision_tower.blocks))):
+        block = vision_tower.blocks[layer]
         cu = (
             context["cu_seqlens"]
             if layer in vision_tower.fullatt_block_indexes
             else context["cu_window_seqlens"]
         )
-        hidden_states = vision_tower.blocks[layer](
-            hidden_states, cu_seqlens=cu, position_embeddings=context["position_embeddings"]
-        )
+        if checkpoint:
+            hidden_states = vision_tower._gradient_checkpointing_func(
+                block.__call__, hidden_states, cu, None, context["position_embeddings"]
+            )
+        else:
+            hidden_states = block(
+                hidden_states, cu_seqlens=cu, position_embeddings=context["position_embeddings"]
+            )
     return hidden_states
 
 

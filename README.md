@@ -213,9 +213,9 @@ python tools/score_token_ratio.py \
     --high-res-dataset data/egointention_context_test_10to50.json
 ```
 
-**Example.** SmartRes-Lite over ten images of the EgoIntention context split.
+**Example.** SmartRes-Lite on the EgoIntention context split, over 10 records.
 
-| over 10 records | value |
+| | |
 |:--|--:|
 | visual tokens, SmartRes | 7,970 |
 | visual tokens, full resolution | 27,990 |

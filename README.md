@@ -181,9 +181,7 @@ python tools/score_per_scale.py \
     --dataset data/egointention_context_test_10to50.json
 ```
 
-**Example.** SmartRes-Lite on the EgoIntention context split, scoring
-`outputs/eval_context/generated_predictions.jsonl` against
-`data/egointention_context_test_10to50.json`.
+**Example.** SmartRes-Lite on the EgoIntention context split.
 
 | split | n | P@0.5 | P@0.3 | mIoU |
 |:--|--:|--:|--:|--:|

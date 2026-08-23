@@ -181,7 +181,9 @@ python tools/score_per_scale.py \
     --dataset data/egointention_context_test_10to50.json
 ```
 
-**Example.**
+**Example.** SmartRes-Lite on the EgoIntention context split, scoring
+`outputs/eval_context/generated_predictions.jsonl` against
+`data/egointention_context_test_10to50.json`.
 
 | split | n | P@0.5 | P@0.3 | mIoU |
 |:--|--:|--:|--:|--:|
@@ -201,10 +203,6 @@ per forward:
 SMARTRES_TOKEN_LOG=1 bash scripts/eval.sh context
 ```
 
-**Example.**
-
-> `[smartres-tokens] {"samples": 1, "assembled": 3364, "encoded": 4032, "hr_total": 4144, "activated": 0.668552}`
-
 **2. Score.** Point the tool at the log. It pulls the records out, writes them to
 `--extract`, and reports:
 
@@ -215,7 +213,7 @@ python tools/score_token_ratio.py \
     --high-res-dataset data/egointention_context_test_10to50.json
 ```
 
-**Example.**
+**Example.** SmartRes-Lite over ten images of the EgoIntention context split.
 
 | over 10 records | value |
 |:--|--:|
@@ -224,10 +222,6 @@ python tools/score_token_ratio.py \
 | high-res patches re-encoded | 76.93% |
 | low-res patches routed to high res | 35.44% |
 | **Ratio** | **28.47%** |
-
-`scripts/eval.sh` runs both of these on the split it just evaluated: accuracy from the boxes
-it wrote, cost from the records the vision tower emitted. Run either by hand to re-score an
-existing `outputs/` directory.
 
 ## Comparisons
 

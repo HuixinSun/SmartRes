@@ -13,14 +13,13 @@ forward, then point this at the log:
 
 import argparse
 import json
-import re
 import sys
 from typing import Dict, List, Optional
 
 from PIL import Image
 
 KEY = "[smartres-tokens]"
-FIELD = re.compile(r"(\w+)=([-\d.]+)")
+REQUIRED = {"samples", "assembled", "encoded", "hr_total"}
 MERGE_FACTOR = 28  # patch 14 x spatial merge 2
 
 
@@ -32,8 +31,11 @@ def read_records(path: str) -> List[Dict[str, float]]:
             start = line.find(KEY)
             if start == -1:
                 continue
-            fields = {k: float(v) for k, v in FIELD.findall(line[start + len(KEY):])}
-            if {"samples", "assembled", "encoded", "hr_total"} <= fields.keys():
+            try:
+                fields = json.loads(line[start + len(KEY):].strip())
+            except json.JSONDecodeError:
+                continue
+            if isinstance(fields, dict) and REQUIRED <= fields.keys():
                 records.append(fields)
     return records
 
@@ -95,12 +97,7 @@ def main() -> int:
     if args.extract:
         with open(args.extract, "w") as handle:
             for record in records:
-                handle.write(
-                    f"{KEY} samples={int(record['samples'])} "
-                    f"assembled={int(record['assembled'])} encoded={int(record['encoded'])} "
-                    f"hr_total={int(record['hr_total'])} "
-                    f"activated={record.get('activated', float('nan')):.6f}\n"
-                )
+                handle.write(f"{KEY} {json.dumps(record)}\n")
         print(f"wrote {len(records)} records to {args.extract}")
 
     samples = int(sum(r["samples"] for r in records))
@@ -133,7 +130,6 @@ def main() -> int:
                       f"in {args.high_res_dataset}. The log is from a different run.",
                       file=sys.stderr)
                 return 2
-            print("  coverage    : records match the evaluated dataset exactly")
 
     full_tokens, missing = sum_tokens(full_images, "full-res")
     if missing:
@@ -142,15 +138,14 @@ def main() -> int:
         return 2
 
     smartres_tokens = assembled // 4
-    print(f"\nrecords     : {len(records)} ({samples} samples)")
-    print(f"\n  {'quantity':<38}{'value':>14}")
-    print("  " + "-" * 52)
-    print(f"  {'SmartRes visual tokens':<38}{smartres_tokens:>14,}")
-    print(f"  {'full-resolution visual tokens':<38}{full_tokens:>14,}")
-    print(f"  {'Ratio':<38}{100.0 * smartres_tokens / max(full_tokens, 1):>13.2f}%")
-    print(f"  {'high-res patches re-encoded':<38}{100.0 * encoded / max(high_res, 1):>13.2f}%")
+    print(f"\nrecords     : {len(records)} ({samples} samples)\n")
+    print(f"  {'visual tokens, SmartRes':<38}{smartres_tokens:>12,}")
+    print(f"  {'visual tokens, full resolution':<38}{full_tokens:>12,}")
+    print("  " + "-" * 50)
+    print(f"  {'Ratio':<38}{100.0 * smartres_tokens / max(full_tokens, 1):>11.2f}%")
+    print(f"  {'high-res patches re-encoded':<38}{100.0 * encoded / max(high_res, 1):>11.2f}%")
     print(f"  {'low-res patches routed to high res':<38}"
-          f"{100.0 * sum(r.get('activated', 0.0) for r in records) / len(records):>13.2f}%")
+          f"{100.0 * sum(r.get('activated', 0.0) for r in records) / len(records):>11.2f}%")
     print()
     return 0
 

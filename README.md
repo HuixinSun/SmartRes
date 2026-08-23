@@ -202,7 +202,7 @@ SMARTRES_TOKEN_LOG=1 bash scripts/eval.sh context
 ```
 
 ```
-[smartres-tokens] samples=1 assembled=3364 encoded=4032 hr_total=4144 activated=0.668552
+[smartres-tokens] {"samples": 1, "assembled": 3364, "encoded": 4032, "hr_total": 4144, "activated": 0.668552}
 ```
 
 **2. Score.** Point the tool at the log. It pulls the records out, writes them to
@@ -216,17 +216,14 @@ python tools/score_token_ratio.py \
 ```
 
 ```
-  coverage    : records match the evaluated dataset exactly
-
 records     : 10 (10 samples)
 
-  quantity                                       value
-  ----------------------------------------------------
-  SmartRes visual tokens                         7,970
-  full-resolution visual tokens                 27,990
-  Ratio                                         28.47%
-  high-res patches re-encoded                   76.93%
-  low-res patches routed to high res            35.44%
+  visual tokens, SmartRes                      7,970
+  visual tokens, full resolution              27,990
+  --------------------------------------------------
+  Ratio                                       28.47%
+  high-res patches re-encoded                 76.93%
+  low-res patches routed to high res          35.44%
 ```
 
 | Flag | |

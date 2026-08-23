@@ -221,9 +221,9 @@ python tools/score_token_ratio.py \
 |:--|--:|
 | visual tokens, SmartRes | 7,970 |
 | visual tokens, full resolution | 27,990 |
-| **Ratio** | **28.47%** |
 | high-res patches re-encoded | 76.93% |
 | low-res patches routed to high res | 35.44% |
+| **Ratio** | **28.47%** |
 
 `scripts/eval.sh` runs both of these on the split it just evaluated: accuracy from the boxes
 it wrote, cost from the records the vision tower emitted. Run either by hand to re-score an

@@ -170,64 +170,56 @@ per_device_eval_batch_size: 1   # must stay 1
 
 ## Analysis
 
-`scripts/eval.sh` runs both of these on the split it just evaluated: accuracy from the boxes
-it wrote, cost from the records the vision tower emitted. Run either by hand to re-score an
-existing `outputs/` directory.
-
-### Per-scale accuracy
-
-Objects are grouped by relative box area `S` into small (`S<0.005`), medium
-(`0.005≤S<0.05`) and large (`S≥0.05`), reported as P_s, P_m and P_l.
+### Per-scale Accuracy
 
 ```bash
-## input
 python tools/score_per_scale.py \
     --predictions outputs/eval_context/generated_predictions.jsonl \
     --dataset data/egointention_context_test_10to50.json
-
-## output
-  split                              n     P@0.5     P@0.3      mIoU
-  ------------------------------------------------------------------
-  overall                         9892     51.90     59.12    0.4570
-
-  small (S < 0.005)                787     22.87     32.15    0.2031
-  medium (0.005 <= S < 0.05)      5174     48.84     56.94    0.4213
-  large (S >= 0.05)               3931     61.74     67.39    0.5549
 ```
 
-### Token ratio
+Objects are defined by relative box area `S` into small (`S<0.005`), medium
+(`0.005≤S<0.05`) and large (`S≥0.05`), reported as P_s, P_m and P_l.
+
+| split | n | P@0.5 | P@0.3 | mIoU |
+|:--|--:|--:|--:|--:|
+| overall | 9892 | 51.90 | 59.12 | 0.4570 |
+| small (`S<0.005`) | 787 | 22.87 | 32.15 | 0.2031 |
+| medium (`0.005≤S<0.05`) | 5174 | 48.84 | 56.94 | 0.4213 |
+| large (`S≥0.05`) | 3931 | 61.74 | 67.39 | 0.5549 |
+
+### Token Ratio
 
 **1. Record.** Set `SMARTRES_TOKEN_LOG=1`, which makes the vision tower print one keyed line
-per forward.
+per forward:
 
 ```bash
-## input
 SMARTRES_TOKEN_LOG=1 bash scripts/eval.sh context
-
-## output
-[smartres-tokens] {"samples": 1, "assembled": 3364, "encoded": 4032, "hr_total": 4144, "activated": 0.668552}
 ```
 
+> `[smartres-tokens] {"samples": 1, "assembled": 3364, "encoded": 4032, "hr_total": 4144, "activated": 0.668552}`
+
 **2. Score.** Point the tool at the log. It pulls the records out, writes them to
-`--extract`, and reports.
+`--extract`, and reports:
 
 ```bash
-## input
 python tools/score_token_ratio.py \
     --log outputs/eval_context/run.log --extract outputs/eval_context/tokens.txt \
     --full-dataset data/egointention_context_test.json \
     --high-res-dataset data/egointention_context_test_10to50.json
-
-## output
-records     : 10 (10 samples)
-
-  visual tokens, SmartRes                      7,970
-  visual tokens, full resolution              27,990
-  --------------------------------------------------
-  Ratio                                       28.47%
-  high-res patches re-encoded                 76.93%
-  low-res patches routed to high res          35.44%
 ```
+
+| over 10 records | value |
+|:--|--:|
+| visual tokens, SmartRes | 7,970 |
+| visual tokens, full resolution | 27,990 |
+| **Ratio** | **28.47%** |
+| high-res patches re-encoded | 76.93% |
+| low-res patches routed to high res | 35.44% |
+
+`scripts/eval.sh` runs both of these on the split it just evaluated: accuracy from the boxes
+it wrote, cost from the records the vision tower emitted. Run either by hand to re-score an
+existing `outputs/` directory.
 
 ## Comparisons
 

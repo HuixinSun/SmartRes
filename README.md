@@ -100,13 +100,14 @@ Use the same `tau` the adapter was trained with.
 
 ## Data
 
-**Frames.** EgoIntention uses the Ego4D split of
+**Frames.** EgoIntention uses the [Ego4D](https://ego4d-data.org/) split of
 [PACO](https://github.com/facebookresearch/paco). Point the `images` field of the JSONs at
 your copy.
 
 **Labels.** Boxes are stored in the coordinate frame of the resolution they were rendered at,
-so the frame is part of the setting. `10to50` means the image is stored at 50% of the original
-token budget while the boxes live in the 10% coordinate frame.
+so a setting names two resolutions, both as a fraction of the frame's native token budget:
+the base resolution the boxes are defined in, and the target resolution the image is stored
+at. `10to50` is a base resolution of 10% and a target resolution of 50%.
 
 | Setting | Files |
 |:--|:--|
@@ -131,9 +132,6 @@ bash scripts/train.sh                       # SmartRes-Lite
 bash scripts/train.sh --hr-budget 1.00      # SmartRes-Pro
 NPROC=4 bash scripts/train.sh               # more GPUs
 ```
-
-`NPROC` defaults to 2, which is what the released checkpoint used. It multiplies into the
-effective batch, so lower `gradient_accumulation_steps` in step if you raise it.
 
 **Configs.** Set in `configs/qwen2_5vl_3b_lora_sft_egoint_lite.yaml`; the matching flag
 overrides it.
@@ -204,7 +202,7 @@ SMARTRES_TOKEN_LOG=1 bash scripts/eval.sh context
 ```
 
 ```
-[smartres-tokens] samples=1 assembled=3100 encoded=3936 hr_total=4144 activated=0.114000
+[smartres-tokens] samples=1 assembled=3364 encoded=4032 hr_total=4144 activated=0.668552
 ```
 
 **2. Score.** Point the tool at the log. It pulls the records out, writes them to
@@ -218,14 +216,32 @@ python tools/score_token_ratio.py \
 ```
 
 ```
+  coverage    : records match the evaluated dataset exactly
+
+records     : 10 (10 samples)
+
   quantity                                       value
   ----------------------------------------------------
-  SmartRes visual tokens                       xxx,xxx
-  full-resolution visual tokens                xxx,xxx
-  Ratio                                          xx.xx%
-  high-res patches re-encoded                    xx.xx%
-  low-res patches routed to high res             xx.xx%
+  SmartRes visual tokens                         7,970
+  full-resolution visual tokens                 27,990
+  Ratio                                         28.47%
+  high-res patches re-encoded                   76.93%
+  low-res patches routed to high res            35.44%
 ```
+
+| Flag | |
+|:--|:--|
+| `--log` | any evaluation log; a `[rank1]` prefix on the line is fine |
+| `--records` | a file of already-extracted records, instead of `--log` |
+| `--extract` | where to write the records pulled out of `--log` |
+| `--full-dataset` | the 100% dataset for the same split; sets the denominator |
+| `--high-res-dataset` | the split that was evaluated; enables the coverage check |
+
+**Why the denominator is a sum.** Under DDP the records arrive in an arbitrary order, so the
+tool compares totals and never pairs a record to a dataset row. `--high-res-dataset` is what
+makes that safe: it sorts the recorded `hr_total` values against the patch counts of the
+images in that split and refuses to score if they differ. Without it, a log from another run
+still produces a plausible-looking number.
 
 ## Comparisons
 
@@ -256,7 +272,8 @@ SmartRes' **(d)** routing mask and **(e)** prediction, with IoU on each.
 Built on [Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL),
 [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) and
 [FastV](https://github.com/pkunlp-icler/FastV). Evaluation data comes from
-[PACO](https://github.com/facebookresearch/paco) and [Ego4D](https://ego4d-data.org/).
+EgoIntention, built on [PACO](https://github.com/facebookresearch/paco) and
+[Ego4D](https://ego4d-data.org/).
 
 ## License
 

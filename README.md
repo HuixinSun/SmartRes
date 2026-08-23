@@ -172,7 +172,10 @@ per_device_eval_batch_size: 1   # must stay 1
 
 ## Analysis
 
-Scores the boxes written by `scripts/eval.sh`.
+`scripts/eval.sh` runs both of the following on the split it just evaluated. Run them by
+hand to re-score an existing `outputs/` directory.
+
+### Per-scale accuracy
 
 ```bash
 python tools/score_per_scale.py \
@@ -184,8 +187,28 @@ Reports P@0.3, P@0.5 and mIoU, overall and per object scale. Objects are grouped
 relative box area `S` into small (`S<0.005`), medium (`0.005≤S<0.05`) and large
 (`S≥0.05`), reported as P_s, P_m and P_l.
 
-**Token Ratio.** With `SMARTRES_TOKEN_LOG=1` set, which `scripts/eval.sh` does, the vision
-tower prints one `[smartres-tokens]` record per forward. Pull them out of the log and score:
+### Token ratio
+
+Ratio is the visual tokens SmartRes assembles over what the same images cost at full
+resolution, both counted after the 2×2 merge and summed over the split:
+
+```
+Ratio = sum(assembled) / 4 / sum(full-resolution tokens)
+```
+
+**1. Record.** Set `SMARTRES_TOKEN_LOG=1`, which makes the vision tower print one keyed line
+per forward. Keep stderr, since that is where the records go.
+
+```bash
+SMARTRES_TOKEN_LOG=1 bash scripts/eval.sh context
+```
+
+```
+[smartres-tokens] samples=1 assembled=3100 encoded=3936 hr_total=4144 activated=0.114000
+```
+
+**2. Score.** Point the tool at the log. It pulls the records out, writes them to
+`--extract`, and reports.
 
 ```bash
 python tools/score_token_ratio.py \
@@ -194,15 +217,29 @@ python tools/score_token_ratio.py \
     --high-res-dataset data/egointention_context_test_10to50.json
 ```
 
-Ratio is the assembled visual tokens over the tokens the same images would cost at full
-resolution, both after the 2×2 merge, summed over the split:
-
 ```
-Ratio = sum(assembled) / 4 / sum(full-resolution tokens)
+  quantity                                       value
+  ----------------------------------------------------
+  SmartRes visual tokens                       xxx,xxx
+  full-resolution visual tokens                xxx,xxx
+  Ratio                                          xx.xx%
+  high-res patches re-encoded                    xx.xx%
+  low-res patches routed to high res             xx.xx%
 ```
 
-Under DDP the records arrive in an arbitrary order, so this is a ratio of totals and never
-pairs a record to a row. `--high-res-dataset` is what checks the log covers that split.
+| Flag | |
+|:--|:--|
+| `--log` | any evaluation log; a `[rank1]` prefix on the line is fine |
+| `--records` | a file of already-extracted records, instead of `--log` |
+| `--extract` | where to write the records pulled out of `--log` |
+| `--full-dataset` | the 100% dataset for the same split; sets the denominator |
+| `--high-res-dataset` | the split that was evaluated; enables the coverage check |
+
+**Why the denominator is a sum.** Under DDP the records arrive in an arbitrary order, so the
+tool compares totals and never pairs a record to a dataset row. `--high-res-dataset` is what
+makes that safe: it sorts the recorded `hr_total` values against the patch counts of the
+images in that split and refuses to score if they differ. Without it, a log from another run
+still produces a plausible-looking number.
 
 ## Comparisons
 

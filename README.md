@@ -187,21 +187,14 @@ relative box area `S` into small (`S<0.005`), medium (`0.005≤S<0.05`) and larg
 
 ### Token ratio
 
-Ratio is the visual tokens SmartRes assembles over what the same images cost at full
-resolution, both counted after the 2×2 merge and summed over the split:
-
-```
-Ratio = sum(assembled) / 4 / sum(full-resolution tokens)
-```
-
 **1. Record.** Set `SMARTRES_TOKEN_LOG=1`, which makes the vision tower print one keyed line
 per forward. Keep stderr, since that is where the records go.
 
 ```bash
+## input
 SMARTRES_TOKEN_LOG=1 bash scripts/eval.sh context
-```
 
-```
+## output
 [smartres-tokens] {"samples": 1, "assembled": 3364, "encoded": 4032, "hr_total": 4144, "activated": 0.668552}
 ```
 
@@ -209,13 +202,13 @@ SMARTRES_TOKEN_LOG=1 bash scripts/eval.sh context
 `--extract`, and reports.
 
 ```bash
+## input
 python tools/score_token_ratio.py \
     --log outputs/eval_context/run.log --extract outputs/eval_context/tokens.txt \
     --full-dataset data/egointention_context_test.json \
     --high-res-dataset data/egointention_context_test_10to50.json
-```
 
-```
+## output
 records     : 10 (10 samples)
 
   visual tokens, SmartRes                      7,970

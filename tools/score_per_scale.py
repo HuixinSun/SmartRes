@@ -171,13 +171,13 @@ def main() -> int:
 
     def emit(title: str, tally: Tally, valid_only: bool = False) -> None:
         p05, p03, miou = tally.row(valid_only)
-        print(f"  {title:<24}{tally.total:>8}{p05:>10.2f}{p03:>10.2f}{miou:>10.4f}")
+        print(f"  {title:<28}{tally.total:>8}{p05:>10.2f}{p03:>10.2f}{miou:>10.4f}")
 
     print(f"\npredictions : {args.predictions}")
     print(f"parsed      : {overall.parsed}/{overall.total} "
           f"({100.0 * (overall.total - overall.parsed) / max(overall.total, 1):.2f}% unparsable, scored as IoU 0)")
-    print("\n  {:<24}{:>8}{:>10}{:>10}{:>10}".format("split", "n", "P@0.5", "P@0.3", "mIoU"))
-    print("  " + "-" * 62)
+    print("\n  {:<28}{:>8}{:>10}{:>10}{:>10}".format("split", "n", "P@0.5", "P@0.3", "mIoU"))
+    print("  " + "-" * 66)
     emit("overall", overall)
 
     if dataset is not None:

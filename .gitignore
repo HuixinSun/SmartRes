@@ -11,3 +11,7 @@ figs/*.pdf
 
 # Local benchmark output
 bench_per_scale.json
+
+# PBS stray output files
+*.o[0-9]*
+*.e[0-9]*

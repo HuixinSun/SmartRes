@@ -38,7 +38,7 @@ regions.
 - [x] **Training**: router trained jointly with the backbone
 - [x] **Inference**: EgoIntention context and uncommon splits
 - [x] **Checkpoint**: SmartRes-Lite
-- [x] **Analysis**: per-scale accuracy
+- [x] **Analysis**: per-scale accuracy and token ratio
 - [x] **Comparisons**: down-scaling, FastV
 - [x] **Data**: annotations at 100% and 10% → 50%, and a script for other budgets
 
@@ -257,9 +257,10 @@ SmartRes' **(d)** routing mask and **(e)** prediction, with IoU on each.
 
 Built on [Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL),
 [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) and
-[FastV](https://github.com/pkunlp-icler/FastV). Evaluation data comes from
-EgoIntention, built on [PACO](https://github.com/facebookresearch/paco) and
-[Ego4D](https://ego4d-data.org/).
+[FastV](https://github.com/pkunlp-icler/FastV).
+
+Evaluation data comes from [EgoIntention](https://github.com/pengzhansun/EgoIntention),
+[PACO](https://github.com/facebookresearch/paco) and [Ego4D](https://ego4d-data.org/).
 
 ## License
 

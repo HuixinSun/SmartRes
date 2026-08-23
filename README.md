@@ -188,7 +188,7 @@ relative box area `S` into small (`S<0.005`), medium (`0.005≤S<0.05`) and larg
 ### Token ratio
 
 **1. Record.** Set `SMARTRES_TOKEN_LOG=1`, which makes the vision tower print one keyed line
-per forward. Keep stderr, since that is where the records go.
+per forward.
 
 ```bash
 ## input

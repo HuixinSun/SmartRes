@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Evaluate one split and score it overall and per object scale.
+# Evaluate one split and score it overall, per object scale, and by token Ratio.
 #   bash scripts/eval.sh context        # also: uncommon
 set -euo pipefail
 
@@ -12,11 +12,18 @@ case "$SPLIT" in
     *)                echo "unknown split '$SPLIT'"; exit 1 ;;
 esac
 OUTPUT="$REPO/outputs/eval_${SPLIT}"
+mkdir -p "$OUTPUT"
 
-python "$REPO/tools/run_eval.py" "$CONFIG" \
+# The vision tower emits one keyed record per forward, which score_token_ratio.py reads.
+SMARTRES_TOKEN_LOG=1 python "$REPO/tools/run_eval.py" "$CONFIG" \
     --eval-dataset "$DATASET" --output-dir "$OUTPUT" \
-    --nproc "${NPROC:-4}" --master-port "${MASTER_PORT:-29540}"
+    --nproc "${NPROC:-4}" --master-port "${MASTER_PORT:-29540}" 2>&1 | tee "$OUTPUT/run.log"
 
 python "$REPO/tools/score_per_scale.py" \
     --predictions "$OUTPUT/generated_predictions.jsonl" \
     --dataset "${DATA_DIR:-$REPO/data}/${DATASET}.json"
+
+python "$REPO/tools/score_token_ratio.py" \
+    --log "$OUTPUT/run.log" --extract "$OUTPUT/tokens.txt" \
+    --full-dataset "${DATA_DIR:-$REPO/data}/egointention_${SPLIT}_test.json" \
+    --high-res-dataset "${DATA_DIR:-$REPO/data}/${DATASET}.json"

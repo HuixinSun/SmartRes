@@ -184,6 +184,26 @@ Reports P@0.3, P@0.5 and mIoU, overall and per object scale. Objects are grouped
 relative box area `S` into small (`S<0.005`), medium (`0.005≤S<0.05`) and large
 (`S≥0.05`), reported as P_s, P_m and P_l.
 
+**Token Ratio.** With `SMARTRES_TOKEN_LOG=1` set, which `scripts/eval.sh` does, the vision
+tower prints one `[smartres-tokens]` record per forward. Pull them out of the log and score:
+
+```bash
+python tools/score_token_ratio.py \
+    --log outputs/eval_context/run.log --extract outputs/eval_context/tokens.txt \
+    --full-dataset data/egointention_context_test.json \
+    --high-res-dataset data/egointention_context_test_10to50.json
+```
+
+Ratio is the assembled visual tokens over the tokens the same images would cost at full
+resolution, both after the 2×2 merge, summed over the split:
+
+```
+Ratio = sum(assembled) / 4 / sum(full-resolution tokens)
+```
+
+Under DDP the records arrive in an arbitrary order, so this is a ratio of totals and never
+pairs a record to a row. `--high-res-dataset` is what checks the log covers that split.
+
 ## Comparisons
 
 ```bash

@@ -1,5 +1,7 @@
 """Install SmartRes onto a constructed Qwen2.5-VL model."""
 
+import os
+import sys
 from types import MethodType
 from typing import Optional
 
@@ -7,6 +9,18 @@ import torch
 
 from ..forward import smartres_vision_forward
 from ..router import Router
+
+TOKEN_RECORD_KEY = "[smartres-tokens]"
+
+
+def _emit_token_record(output) -> None:
+    """One keyed line per forward, for tools/score_token_ratio.py to pull out of the log."""
+    print(
+        f"{TOKEN_RECORD_KEY} samples={len(output.lengths)} assembled={sum(output.lengths)} "
+        f"encoded={output.high_res_encoded} hr_total={output.high_res_total} "
+        f"activated={output.activated_ratio:.6f}",
+        file=sys.stderr, flush=True,
+    )
 
 
 def install_smartres(
@@ -80,6 +94,8 @@ def install_smartres(
         # Kept on the module so the training loop can add the routing terms to the loss and
         # the benchmark can read the activation rate, without widening the return.
         self.last_vision_output = output
+        if os.environ.get("SMARTRES_TOKEN_LOG"):
+            _emit_token_record(output)
         # For training loops that read a single auxiliary loss off the vision tower.
         if output.loss_route is not None:
             self.loss_mts = (self.router.lambda_route * output.loss_route

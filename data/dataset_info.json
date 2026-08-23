@@ -14,6 +14,21 @@
       "system_tag": "system"
     }
   },
+  "egointention_uncommon_test": {
+    "file_name": "egointention_uncommon_test.json",
+    "formatting": "sharegpt",
+    "columns": {
+      "messages": "messages",
+      "images": "images"
+    },
+    "tags": {
+      "role_tag": "role",
+      "content_tag": "content",
+      "user_tag": "user",
+      "assistant_tag": "assistant",
+      "system_tag": "system"
+    }
+  },
   "egointention_context_test_10to50": {
     "file_name": "egointention_context_test_10to50.json",
     "formatting": "sharegpt",

@@ -168,9 +168,7 @@ hr_budget: 0.50                 # r_HR, high-resolution token budget
 per_device_eval_batch_size: 1   # must stay 1
 ```
 
-## Analysis
-
-### Per-scale Accuracy
+## Analysis: Per-scale Accuracy
 
 Objects are defined by relative box area `S` into small (`S<0.005`), medium
 (`0.005≤S<0.05`) and large (`S≥0.05`), reported as P_s, P_m and P_l:
@@ -190,9 +188,7 @@ python tools/score_per_scale.py \
 | medium (`0.005≤S<0.05`) | 5174 | 48.84 | 56.94 | 0.4213 |
 | large (`S≥0.05`) | 3931 | 61.74 | 67.39 | 0.5549 |
 
----
-
-### Token Ratio
+## Analysis: Token Ratio
 
 **1. Record.** Set `SMARTRES_TOKEN_LOG=1`, which makes the vision tower print one keyed line
 per forward:

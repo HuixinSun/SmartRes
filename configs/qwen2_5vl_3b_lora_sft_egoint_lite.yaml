@@ -32,9 +32,9 @@ lora_target: q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj
 lora_alpha: 16
 lora_dropout: 0.05
 additional_target: visual.router
-per_device_train_batch_size: 1
-# Effective batch is 1 x 8 x world size; the released checkpoint used 2 GPUs, so 16.
-gradient_accumulation_steps: 8
+per_device_train_batch_size: 2
+# Effective batch is 2 x 4 x world size; the released checkpoint used 2 GPUs, so 16.
+gradient_accumulation_steps: 4
 learning_rate: 1.0e-4
 selector_learning_rate: 1.0e-4
 num_train_epochs: 3

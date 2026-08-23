@@ -207,16 +207,6 @@ python tools/score_token_ratio.py \
     --high-res-dataset data/egointention_context_test_10to50.json
 ```
 
-**Example.** SmartRes-Lite on the EgoIntention context split, over 10 records.
-
-| | |
-|:--|--:|
-| visual tokens, SmartRes | 7,970 |
-| visual tokens, full resolution | 27,990 |
-| high-res patches re-encoded | 76.93% |
-| low-res patches routed to high res | 35.44% |
-| **Ratio** | **28.47%** |
-
 ## Comparisons
 
 ```bash

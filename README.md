@@ -172,14 +172,16 @@ per_device_eval_batch_size: 1   # must stay 1
 
 ### Per-scale Accuracy
 
+Objects are defined by relative box area `S` into small (`S<0.005`), medium
+(`0.005≤S<0.05`) and large (`S≥0.05`), reported as P_s, P_m and P_l:
+
 ```bash
 python tools/score_per_scale.py \
     --predictions outputs/eval_context/generated_predictions.jsonl \
     --dataset data/egointention_context_test_10to50.json
 ```
 
-Objects are defined by relative box area `S` into small (`S<0.005`), medium
-(`0.005≤S<0.05`) and large (`S≥0.05`), reported as P_s, P_m and P_l.
+**Example.**
 
 | split | n | P@0.5 | P@0.3 | mIoU |
 |:--|--:|--:|--:|--:|
@@ -187,6 +189,8 @@ Objects are defined by relative box area `S` into small (`S<0.005`), medium
 | small (`S<0.005`) | 787 | 22.87 | 32.15 | 0.2031 |
 | medium (`0.005≤S<0.05`) | 5174 | 48.84 | 56.94 | 0.4213 |
 | large (`S≥0.05`) | 3931 | 61.74 | 67.39 | 0.5549 |
+
+---
 
 ### Token Ratio
 
@@ -196,6 +200,8 @@ per forward:
 ```bash
 SMARTRES_TOKEN_LOG=1 bash scripts/eval.sh context
 ```
+
+**Example.**
 
 > `[smartres-tokens] {"samples": 1, "assembled": 3364, "encoded": 4032, "hr_total": 4144, "activated": 0.668552}`
 
@@ -208,6 +214,8 @@ python tools/score_token_ratio.py \
     --full-dataset data/egointention_context_test.json \
     --high-res-dataset data/egointention_context_test_10to50.json
 ```
+
+**Example.**
 
 | over 10 records | value |
 |:--|--:|

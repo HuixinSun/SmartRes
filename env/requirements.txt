@@ -14,3 +14,9 @@ pillow==11.3.0
 omegaconf
 pyyaml
 tqdm
+
+# LLaMA-Factory requires these whenever predict_with_generate is on, which the
+# evaluation configs set. Same set as its own "metrics" extra.
+jieba==0.42.1
+nltk==3.9.1
+rouge-chinese==1.0.3

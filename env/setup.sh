@@ -9,7 +9,7 @@ cd "$REPO"
 conda create -n "$ENV_NAME" python=3.10 -y
 eval "$(conda shell.bash hook)"; conda activate "$ENV_NAME"
 
-pip install torch==2.9.1 --index-url https://download.pytorch.org/whl/cu128
+pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu128
 pip install -r env/requirements.txt
 pip install -e .
 

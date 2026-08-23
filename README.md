@@ -50,7 +50,7 @@ regions.
 git clone --recursive https://github.com/HuixinSun/SmartRes.git && cd SmartRes
 conda create -n smartres python=3.10 -y && conda activate smartres
 
-pip install torch==2.9.1 --index-url https://download.pytorch.org/whl/cu128
+pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cu128
 pip install -r env/requirements.txt
 pip install -e .
 ```
@@ -129,7 +129,11 @@ frame relative to that resized image.
 ```bash
 bash scripts/train.sh                       # SmartRes-Lite
 bash scripts/train.sh --hr-budget 1.00      # SmartRes-Pro
+NPROC=4 bash scripts/train.sh               # more GPUs
 ```
+
+`NPROC` defaults to 2, which is what the released checkpoint used. It multiplies into the
+effective batch, so lower `gradient_accumulation_steps` in step if you raise it.
 
 **Configs.** Set in `configs/qwen2_5vl_3b_lora_sft_egoint_lite.yaml`; the matching flag
 overrides it.

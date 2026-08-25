@@ -107,6 +107,28 @@ def spliced_rope_index(
     return position_ids, rope_deltas
 
 
+def _prepare(inner, input_ids, attention_mask, pixel_values, image_grid_thw,
+             high_res_pixels, high_res_grid, text_prompt, image_token_id, merge):
+    """Run the vision tower and rebuild the batch around its variable-length output."""
+    visual_embeds, assembled = inner.visual(
+        pixel_values, grid_thw=image_grid_thw,
+        pixel_frames_hr=high_res_pixels, hr_grid_thw=high_res_grid,
+        text_prompt=text_prompt,
+    )
+    embeds = inner.get_input_embeddings()(input_ids)
+    spliced = splice_visual_sequence(
+        input_ids=input_ids, inputs_embeds=embeds, attention_mask=attention_mask,
+        visual_embeds=visual_embeds.to(embeds.dtype), assembled_lengths=list(assembled),
+        image_token_id=image_token_id, spatial_merge_size=merge,
+    )
+    # Positions come from the high-resolution grid: the spliced span is a walk over it.
+    position_ids, rope_deltas = spliced_rope_index(
+        spliced.input_ids, high_res_grid, spliced.attention_mask, image_token_id, merge
+    )
+    inner.rope_deltas = rope_deltas
+    return spliced, position_ids
+
+
 def install_runtime(model, image_token_id: Optional[int] = None):
     """Route the language model around the stock scatter. Returns ``model``.
 
@@ -118,118 +140,93 @@ def install_runtime(model, image_token_id: Optional[int] = None):
             "install_runtime expects a Qwen2_5_VLForConditionalGeneration whose .model "
             "holds the vision tower"
         )
-    if getattr(inner, "_smartres_runtime", False):
+    if getattr(model, "_smartres_runtime", False):
         return model
 
     if image_token_id is None:
         image_token_id = model.config.image_token_id
     merge = inner.visual.spatial_merge_size
-    stock_forward = inner.forward
+    stock_inner = inner.forward
+    stock_outer = model.forward
 
-    def forward(self, input_ids=None, attention_mask=None, position_ids=None,
-                inputs_embeds=None, pixel_values=None, image_grid_thw=None,
-                pixel_frames_hr=None, hr_grid_thw=None, labels=None,
-                cache_position=None, **kwargs):
-        kwargs.pop("instruction", None)
-        # Qwen2.5-VL's prepare_inputs_for_generation sets position_ids to None on every
-        # step, so the prefill positions have to be picked up here instead of passed in.
+    def inner_forward(self, *args, position_ids=None, inputs_embeds=None, **kwargs):
+        """Qwen2.5-VL drops position_ids on every generation step; take back ours."""
         if inputs_embeds is not None and position_ids is None:
             stashed = getattr(self, "_smartres_prefill_positions", None)
             if stashed is not None and stashed.shape[-1] == inputs_embeds.size(1):
                 position_ids = stashed
                 self._smartres_prefill_positions = None
+        return stock_inner(*args, position_ids=position_ids, inputs_embeds=inputs_embeds, **kwargs)
 
+    def outer_forward(self, input_ids=None, attention_mask=None, position_ids=None,
+                      inputs_embeds=None, pixel_values=None, image_grid_thw=None,
+                      pixel_frames_hr=None, hr_grid_thw=None, labels=None,
+                      cache_position=None, text_prompt=None, instruction=None, **kwargs):
+        """The splice lives here because this is where the loss is built from labels."""
         routed = (
-            inputs_embeds is None
-            and input_ids is not None
-            and pixel_values is not None
-            and pixel_frames_hr is not None
-            and hr_grid_thw is not None
+            inputs_embeds is None and input_ids is not None and pixel_values is not None
+            and pixel_frames_hr is not None and hr_grid_thw is not None
         )
-        if not routed:
-            return stock_forward(
-                input_ids=input_ids, attention_mask=attention_mask,
-                position_ids=position_ids, inputs_embeds=inputs_embeds,
-                pixel_values=pixel_values, image_grid_thw=image_grid_thw,
-                cache_position=cache_position, **kwargs
+        if routed:
+            spliced, positions = _prepare(
+                inner, input_ids, attention_mask, pixel_values, image_grid_thw,
+                pixel_frames_hr, hr_grid_thw, text_prompt, image_token_id, merge,
+            )
+            if labels is not None:
+                labels = realign_labels(
+                    labels, spliced.spans, spliced.lengths, spliced.input_ids.size(1)
+                )
+            inner._smartres_prefill_positions = positions
+            output = stock_outer(
+                inputs_embeds=spliced.inputs_embeds,
+                attention_mask=spliced.attention_mask,
+                cache_position=spliced.cache_position,
+                labels=labels, **kwargs,
+            )
+        else:
+            output = stock_outer(
+                input_ids=input_ids, attention_mask=attention_mask, position_ids=position_ids,
+                inputs_embeds=inputs_embeds, pixel_values=pixel_values,
+                image_grid_thw=image_grid_thw, labels=labels,
+                cache_position=cache_position, **kwargs,
             )
 
-        visual_embeds, assembled = self.visual(
-            pixel_values, grid_thw=image_grid_thw,
-            pixel_frames_hr=pixel_frames_hr, hr_grid_thw=hr_grid_thw,
-            text_prompt=kwargs.pop("text_prompt", None),
-        )
-        embeds = self.get_input_embeddings()(input_ids)
-        spliced = splice_visual_sequence(
-            input_ids=input_ids, inputs_embeds=embeds, attention_mask=attention_mask,
-            visual_embeds=visual_embeds.to(embeds.dtype), assembled_lengths=list(assembled),
-            image_token_id=image_token_id, spatial_merge_size=merge,
-        )
-        # Positions come from the high-resolution grid: the spliced span is a walk over it.
-        position_ids, rope_deltas = spliced_rope_index(
-            spliced.input_ids, hr_grid_thw, spliced.attention_mask, image_token_id, merge
-        )
-        self.rope_deltas = rope_deltas
-        self._smartres_spliced = spliced
+        # The routing terms are produced by the tower and belong in the trained loss.
+        routing = getattr(inner.visual, "loss_mts", None)
+        if getattr(output, "loss", None) is not None and torch.is_tensor(routing):
+            output.loss = output.loss + routing.to(output.loss.device)
+        inner.visual.loss_mts = None
+        return output
 
-        if labels is not None:
-            labels = realign_labels(
-                labels, spliced.spans, spliced.lengths, spliced.input_ids.size(1)
-            )
-        return stock_forward(
-            inputs_embeds=spliced.inputs_embeds,
-            attention_mask=spliced.attention_mask,
-            position_ids=position_ids,
-            cache_position=spliced.cache_position,
-            labels=labels,
-            **kwargs,
-        )
-
-    inner.forward = MethodType(forward, inner)
-    inner._smartres_runtime = True
-    _install_generation_bridge(model)
+    inner.forward = MethodType(inner_forward, inner)
+    model.forward = MethodType(outer_forward, model)
+    model._smartres_runtime = True
+    _install_generation_bridge(model, inner, image_token_id, merge)
     return model
 
 
-def _install_generation_bridge(model):
+def _install_generation_bridge(model, inner, image_token_id, merge):
     """Prefill through the splice, then let the stock decode loop run on embeddings.
 
     ``generate`` tracks its own ids, which no longer line up with the spliced prefill, so
     the visual pass happens here and the model sees ``inputs_embeds``.
     """
-    if getattr(model, "_smartres_generate", False):
-        return
     stock_generate = model.generate
 
     def generate(self, input_ids=None, attention_mask=None, pixel_values=None,
-                 image_grid_thw=None, pixel_frames_hr=None, hr_grid_thw=None, **kwargs):
-        # Routing supervision only; a stock generate() rejects anything it cannot consume.
-        kwargs.pop("text_prompt", None)
-        kwargs.pop("instruction", None)
+                 image_grid_thw=None, pixel_frames_hr=None, hr_grid_thw=None,
+                 text_prompt=None, instruction=None, **kwargs):
         if input_ids is None or pixel_frames_hr is None or hr_grid_thw is None:
             return stock_generate(
                 input_ids=input_ids, attention_mask=attention_mask,
                 pixel_values=pixel_values, image_grid_thw=image_grid_thw, **kwargs
             )
 
-        inner = self.model
-        visual_embeds, assembled = inner.visual(
-            pixel_values, grid_thw=image_grid_thw,
-            pixel_frames_hr=pixel_frames_hr, hr_grid_thw=hr_grid_thw,
+        spliced, positions = _prepare(
+            inner, input_ids, attention_mask, pixel_values, image_grid_thw,
+            pixel_frames_hr, hr_grid_thw, text_prompt, image_token_id, merge,
         )
-        embeds = inner.get_input_embeddings()(input_ids)
-        spliced = splice_visual_sequence(
-            input_ids=input_ids, inputs_embeds=embeds, attention_mask=attention_mask,
-            visual_embeds=visual_embeds.to(embeds.dtype), assembled_lengths=list(assembled),
-            image_token_id=self.config.image_token_id,
-            spatial_merge_size=inner.visual.spatial_merge_size,
-        )
-        position_ids, rope_deltas = spliced_rope_index(
-            spliced.input_ids, hr_grid_thw, spliced.attention_mask,
-            self.config.image_token_id, inner.visual.spatial_merge_size,
-        )
-        inner.rope_deltas = rope_deltas
-        inner._smartres_prefill_positions = position_ids
+        inner._smartres_prefill_positions = positions
         out = stock_generate(
             inputs_embeds=spliced.inputs_embeds,
             attention_mask=spliced.attention_mask,
@@ -242,4 +239,3 @@ def _install_generation_bridge(model):
         return out
 
     model.generate = MethodType(generate, model)
-    model._smartres_generate = True

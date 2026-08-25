@@ -14,6 +14,19 @@ from ..router import Router
 TOKEN_RECORD_KEY = "[smartres-tokens]"
 
 
+def _as_tensor(value, vision_tower, dtype=None):
+    """A tensor on the tower's device, whatever the processor returned.
+
+    ``dtype=None`` means the tower's compute dtype; grids want ``torch.long``.
+    """
+    if value is None:
+        return None
+    reference = vision_tower.patch_embed.proj.weight
+    if not torch.is_tensor(value):
+        value = torch.as_tensor(value)
+    return value.to(device=reference.device, dtype=dtype or reference.dtype)
+
+
 def _emit_token_record(output) -> None:
     """One keyed line per forward, for tools/score_token_ratio.py to pull out of the log."""
     record = {
@@ -76,12 +89,21 @@ def install_smartres(
                 "SmartRes needs the high-resolution frame (pixel_frames_hr / hr_grid_thw). "
                 "The image processor must be configured to emit both views."
             )
+        # The image processor hands back numpy when no return_tensors is asked for, which
+        # only shows up on the training path; the tower needs real tensors.
+        pixel_values = _as_tensor(pixel_values, self)
+        high_res_pixels = _as_tensor(high_res_pixels, self)
+        grid_thw = _as_tensor(grid_thw, self, torch.long)
+        high_res_grid = _as_tensor(high_res_grid, self, torch.long)
+
         # Routing supervision comes from the target boxes, which arrive as text.
         route_target = kwargs.get("route_target")
         if route_target is None and self.training and kwargs.get("text_prompt"):
             from ..target import build_routing_target, parse_boxes
             boxes = [parse_boxes(str(t)) for t in kwargs["text_prompt"]]
-            route_target = build_routing_target(boxes, grid_thw, self.config.patch_size)
+            route_target = build_routing_target(
+                boxes, grid_thw, self.config.patch_size, device=pixel_values.device
+            )
 
         output = smartres_vision_forward(
             self,

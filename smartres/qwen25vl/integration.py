@@ -102,7 +102,7 @@ def spliced_rope_index(
 
         flat = torch.cat(chunks, dim=1) if chunks else torch.zeros(3, 0, dtype=torch.long, device=device)
         position_ids[:, b, keep] = flat
-        rope_deltas[b] = int(flat.max()) + 1 - int(ids.numel()) if flat.numel() else 0
+        rope_deltas[b] = int(flat.max()) + 1 - padded_len if flat.numel() else 0
 
     return position_ids, rope_deltas
 
@@ -130,6 +130,15 @@ def install_runtime(model, image_token_id: Optional[int] = None):
                 inputs_embeds=None, pixel_values=None, image_grid_thw=None,
                 pixel_frames_hr=None, hr_grid_thw=None, labels=None,
                 cache_position=None, **kwargs):
+        kwargs.pop("instruction", None)
+        # Qwen2.5-VL's prepare_inputs_for_generation sets position_ids to None on every
+        # step, so the prefill positions have to be picked up here instead of passed in.
+        if inputs_embeds is not None and position_ids is None:
+            stashed = getattr(self, "_smartres_prefill_positions", None)
+            if stashed is not None and stashed.shape[-1] == inputs_embeds.size(1):
+                position_ids = stashed
+                self._smartres_prefill_positions = None
+
         routed = (
             inputs_embeds is None
             and input_ids is not None
@@ -194,6 +203,9 @@ def _install_generation_bridge(model):
 
     def generate(self, input_ids=None, attention_mask=None, pixel_values=None,
                  image_grid_thw=None, pixel_frames_hr=None, hr_grid_thw=None, **kwargs):
+        # Routing supervision only; a stock generate() rejects anything it cannot consume.
+        kwargs.pop("text_prompt", None)
+        kwargs.pop("instruction", None)
         if input_ids is None or pixel_frames_hr is None or hr_grid_thw is None:
             return stock_generate(
                 input_ids=input_ids, attention_mask=attention_mask,
@@ -217,12 +229,17 @@ def _install_generation_bridge(model):
             self.config.image_token_id, inner.visual.spatial_merge_size,
         )
         inner.rope_deltas = rope_deltas
-        return stock_generate(
+        inner._smartres_prefill_positions = position_ids
+        out = stock_generate(
             inputs_embeds=spliced.inputs_embeds,
             attention_mask=spliced.attention_mask,
-            position_ids=position_ids,
             **kwargs,
         )
+        # Generating from embeddings returns the completion alone; callers that strip a
+        # prompt off the front expect the prompt to still be there.
+        if isinstance(out, torch.Tensor):
+            return torch.cat([input_ids, out.to(input_ids.device)], dim=1)
+        return out
 
     model.generate = MethodType(generate, model)
     model._smartres_generate = True

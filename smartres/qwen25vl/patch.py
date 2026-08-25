@@ -36,7 +36,10 @@ def _emit_token_record(output) -> None:
         "hr_total": output.high_res_total,
         "activated": round(output.activated_ratio, 6),
     }
-    print(f"{TOKEN_RECORD_KEY} {json.dumps(record)}", file=sys.stderr, flush=True)
+    # One write, not print()'s two: four ranks share this stream and a split line is a
+    # record the scorer silently drops.
+    sys.stderr.write(f"{TOKEN_RECORD_KEY} {json.dumps(record)}\n")
+    sys.stderr.flush()
 
 
 def install_smartres(

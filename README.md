@@ -179,15 +179,6 @@ python tools/score_per_scale.py \
     --dataset data/egointention_context_test_10to50.json
 ```
 
-**Example.** SmartRes-Lite on the EgoIntention context split.
-
-| split | n | P@0.5 | P@0.3 | mIoU |
-|:--|--:|--:|--:|--:|
-| overall | 9892 | 51.90 | 59.12 | 0.4570 |
-| small (`S<0.005`) | 787 | 22.87 | 32.15 | 0.2031 |
-| medium (`0.005≤S<0.05`) | 5174 | 48.84 | 56.94 | 0.4213 |
-| large (`S≥0.05`) | 3931 | 61.74 | 67.39 | 0.5549 |
-
 ## Analysis: Token Ratio
 
 **1. Record.** Set `SMARTRES_TOKEN_LOG=1`, which makes the vision tower print one keyed line

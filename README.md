@@ -224,12 +224,15 @@ SmartRes' **(d)** routing mask and **(e)** prediction, with IoU on each.
 
 ## Acknowledgements
 
-Built on [Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL),
-[LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) and
-[FastV](https://github.com/pkunlp-icler/FastV).
+SmartRes is built on [Qwen2.5-VL](https://github.com/QwenLM/Qwen2.5-VL): the router reads
+its vision tower, and the released checkpoint is a LoRA adapter over its 3B model. Training
+and evaluation run through [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory); the
+fork under `third_party/` is that project with the SmartRes integration added.
 
-Evaluation data comes from [EgoIntention](https://github.com/pengzhansun/EgoIntention),
-[PACO](https://github.com/facebookresearch/paco) and [Ego4D](https://ego4d-data.org/).
+Data comes from [EgoIntention](https://github.com/pengzhansun/EgoIntention), the egocentric
+intention-grounding benchmark this release reports on. Its boxes are the object and part
+annotations of [PACO](https://github.com/facebookresearch/paco), over frames drawn from
+[Ego4D](https://ego4d-data.org/).
 
 ## License
 

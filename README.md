@@ -170,15 +170,10 @@ per_device_eval_batch_size: 1   # must stay 1
 
 ## Results
 
-EgoIntention context split, 9892 samples. The shipped checkpoint is what
-`scripts/train.sh` produces from scratch: 3 epochs, effective batch 16.
-
 | | P@0.5 | P@0.3 | mIoU | P_s | P_m | P_l | Ratio |
 |:--|--:|--:|--:|--:|--:|--:|--:|
 | SmartRes-Lite | 52.37 | 59.29 | 0.4661 | 24.02 | 49.56 | 61.74 | 29.24% |
 | full resolution | 58.74 | 63.91 | 0.5362 | 36.93 | 53.90 | 71.22 | 100% |
-
-SmartRes trades 6.4 points of P@0.5 for a little under a third of the visual tokens.
 
 ## Per-scale Accuracy
 

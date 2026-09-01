@@ -168,6 +168,8 @@ hr_budget: 0.50                 # r_HR, high-resolution token budget
 per_device_eval_batch_size: 1   # must stay 1
 ```
 
+**Results.** EgoIntention context split, 9892 samples, from the shipped checkpoint.
+
 | | P@0.5 | P@0.3 | mIoU | P_s | P_m | P_l | Ratio |
 |:--|--:|--:|--:|--:|--:|--:|--:|
 | SmartRes-Lite | 52.37 | 59.29 | 0.4661 | 24.02 | 49.56 | 61.74 | 29.24% |

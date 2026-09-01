@@ -168,7 +168,7 @@ hr_budget: 0.50                 # r_HR, high-resolution token budget
 per_device_eval_batch_size: 1   # must stay 1
 ```
 
-**Results.** EgoIntention context split, 9892 samples, from the shipped checkpoint.
+**Results.** EgoIntention context split.
 
 | | P@0.5 | P@0.3 | mIoU | P_s | P_m | P_l | Ratio |
 |:--|--:|--:|--:|--:|--:|--:|--:|

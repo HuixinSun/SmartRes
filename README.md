@@ -38,7 +38,7 @@ regions.
 - [x] **Training & Inference**
 - [x] **Checkpoint**: SmartRes-Lite
 - [x] **Analysis**: per-scale accuracy and token ratio
-- [x] **Comparisons**: down-scaling, FastV
+- [x] **Comparisons**: down-scaling, FastV, and settings for five more
 - [x] **Data**: annotations at 100% and 10% → 50%, and a script for other budgets
 
 ## Installation

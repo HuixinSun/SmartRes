@@ -168,6 +168,19 @@ hr_budget: 0.50                 # r_HR, high-resolution token budget
 per_device_eval_batch_size: 1   # must stay 1
 ```
 
+## Results
+
+EgoIntention context split, 9892 samples. `retrained` is this repo's `scripts/train.sh` run
+from scratch — 3 epochs, effective batch 16 — and evaluated with `scripts/eval.sh`.
+
+| checkpoint | P@0.5 | P@0.3 | mIoU | P_s | P_m | P_l | Ratio |
+|:--|--:|--:|--:|--:|--:|--:|--:|
+| SmartRes-Lite | 51.90 | 59.12 | 0.4570 | 22.87 | 48.84 | 61.74 | 29.78% |
+| retrained | 52.37 | 59.29 | 0.4661 | 24.02 | 49.56 | 61.74 | 29.24% |
+
+Vanilla full-resolution grounding scores 58.74 on the same split, so SmartRes trades 6.8
+points of P@0.5 for a little under a third of the visual tokens.
+
 ## Per-scale Accuracy
 
 Objects are defined by relative box area `S` into small (`S<0.005`), medium

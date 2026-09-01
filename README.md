@@ -35,7 +35,7 @@ regions.
 ## Release
 
 - [x] **Environment**: [LLaMA-Factory fork](https://github.com/HuixinSun/LLaMA-Factory-SmartRes) with the SmartRes integration
-- [x] **Training & Inference**: scripts for both, on the EgoIntention context and uncommon splits
+- [x] **Training & Inference**: code and scripts
 - [x] **Checkpoint**: SmartRes-Lite
 - [x] **Analysis**: per-scale accuracy and token ratio
 - [x] **Comparisons**: down-scaling, FastV

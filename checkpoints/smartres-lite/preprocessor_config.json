@@ -1,17 +1,17 @@
 {
-  "base_resolution": 224,
-  "conf_thresh": 0.5,
+  "_last_processed_hr_frames": null,
+  "_last_processed_hr_grid_thw": null,
   "do_convert_rgb": true,
   "do_normalize": true,
   "do_rescale": true,
   "do_resize": true,
-  "high_res_scale": 0.2,
+  "hr_scale": 0.2,
   "image_mean": [
     0.48145466,
     0.4578275,
     0.40821073
   ],
-  "image_processor_type": "MultiScaleImageProcessor",
+  "image_processor_type": "DualResolutionImageProcessor",
   "image_std": [
     0.26862954,
     0.26130258,
@@ -24,12 +24,9 @@
   "processor_class": "Qwen2_5_VLProcessor",
   "resample": 3,
   "rescale_factor": 0.00392156862745098,
-  "scale_levels": 2,
-  "scale_thresh": 0.5,
   "size": {
     "longest_edge": 3211264,
     "shortest_edge": 3136
   },
-  "temporal_patch_size": 2,
-  "use_multi_scale": true
+  "temporal_patch_size": 2
 }
